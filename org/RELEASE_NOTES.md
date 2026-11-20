@@ -1,5 +1,5 @@
-## Undertone 1.0.0
+## Undertone 1.0.1
 
-- Erste Fassung mit eigener Versionsnummer und Update-Hinweis in der App.
-- Undertone prüft einmal täglich, ob eine neue Version da ist, und fragt vor der Installation.
-- Signiert mit dem Undertone-Zertifikat: Freigaben für Mikrofon und Bedienungshilfen bleiben bei künftigen Updates erhalten.
+- Updates kommen jetzt über GitHub und werden in der App angekündigt; installiert wird erst nach Ihrem Klick.
+- Quellcode-Link in der App zeigt auf das öffentliche Repository.
+- Sonst keine spürbaren Änderungen.
