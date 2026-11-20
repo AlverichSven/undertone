@@ -1,0 +1,68 @@
+Undertone: Diktieren auf dem Mac, komplett lokal
+Version {{VERSION}}
+================================================
+
+Voraussetzung: Mac mit Apple-Chip (M1 oder neuer), macOS 15 oder neuer, ca. 2 GB frei.
+
+Sie brauchen nur eine Datei (Download: https://github.com/AlverichSven/undertone-releases/releases/latest):
+Undertone.zip (App mit eingebautem Sprachmodell, ca. 600 MB).
+
+1. Installieren
+   - Undertone.zip laden und öffnen. Hat Ihr Mac die Datei schon automatisch
+     entpackt, nehmen Sie einfach den entstandenen Ordner.
+   - Undertone.app in den Ordner "Programme" Ihres Benutzers ziehen
+     (Finder > Gehe zu > Benutzerordner > "Programme", sonst anlegen).
+   - Undertone per Doppelklick starten.
+   - Meldet macOS, die App könne nicht geöffnet werden: Systemeinstellungen >
+     Datenschutz & Sicherheit > ganz unten bei "Undertone" auf "Dennoch öffnen".
+     (Undertone ist nicht von Apple signiert.)
+
+2. Einrichten (ein Bildschirm)
+   - Mikrofon und Bedienungshilfen freigeben, dann "Los geht's".
+   - Das Sprachmodell ist in der App enthalten und wird beim Start selbst
+     eingerichtet. Internet ist dafür nicht nötig.
+
+3. Globus-Taste freimachen
+   Systemeinstellungen > Tastatur > "Taste 🌐 drücken für" > "Keine Aktion".
+
+4. Benutzen
+   Cursor in ein Textfeld setzen, fn-/Globus-Taste gedrückt halten, sprechen,
+   loslassen. Der Text erscheint schon beim Sprechen.
+   Die Taste lässt sich in den Einstellungen von Undertone ändern.
+
+   Sprachbefehle (einfach mitsprechen):
+     "neue Zeile"            Zeilenumbruch
+     "neuer Absatz"          neuer Absatz
+     "Doppelpunkt"           :      "Semikolon"       ;
+     "Ausrufezeichen"        !      "Fragezeichen"    ?
+     "Anführungszeichen auf" „      "Anführungszeichen zu"  “
+     "Klammer auf"           (      "Klammer zu"      )
+     "Bindestrich"           -      "Schrägstrich"    /
+   Punkt und Komma setzt Undertone selbst.
+
+   Smileys: "Smiley" und der Name, z. B. "Smiley LOL", "Smiley Daumen hoch",
+   "Smiley Zwinkern", "Smiley Herz", "Smiley Haken", "Smiley Party".
+   Beides lässt sich in den Einstellungen unter "Sprachbefehle" abschalten.
+
+5. Aktualisieren
+   - Ab dieser Version kommen Updates per Hinweis in der App: Undertone prüft
+     einmal täglich, zeigt "Neue Version verfügbar" mit den Neuerungen und
+     installiert erst, wenn Sie auf "Installieren" klicken. Von Hand geht es
+     über das Menüleisten-Symbol > "Nach Updates suchen …".
+   - Diese Fassung einmalig von Hand installieren: Undertone beenden,
+     Undertone.app im Ordner "Programme" ersetzen, starten und Mikrofon und
+     Bedienungshilfen ein letztes Mal freigeben. Fügt Undertone keinen Text ein:
+     Systemeinstellungen > Datenschutz & Sicherheit > Bedienungshilfen, Undertone
+     mit "-" entfernen, mit "+" neu hinzufügen und Undertone neu starten.
+   - Ab jetzt ist Undertone mit einem eigenen Zertifikat signiert. Die Freigaben
+     bleiben bei künftigen Updates erhalten. Einstellungen, Wörterbuch und
+     Verlauf bleiben ohnehin.
+
+Datenschutz: Ton und Text verlassen den Mac nicht. Kein Konto, keine Cloud.
+Netzwerk nutzt Undertone nur für die tägliche Update-Prüfung beim internen Server.
+
+Rückmeldung (Erkennung, Tempo, was stört) gern über https://github.com/AlverichSven/undertone/issues
+
+Undertone basiert auf VoiceInk von Prakash Joshi Pax (GPLv3),
+Quellcode von Undertone: https://github.com/AlverichSven/undertone
+Original: https://github.com/Beingpax/VoiceInk

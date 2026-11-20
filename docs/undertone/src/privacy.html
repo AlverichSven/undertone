@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  body { width: 1600px; height: 520px; }
+  .wrap { display: flex; align-items: center; gap: 70px; padding: 0 90px; height: 100%; }
+  .mac {
+    width: 560px; height: 360px; border-radius: 22px; position: relative;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  }
+  .mac .label { position: absolute; top: 18px; left: 22px; font-size: 15px; color: var(--muted); }
+  .flow { display: flex; align-items: center; gap: 16px; font-size: 18px; }
+  .node { padding: 14px 18px; border-radius: 14px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); }
+  .arrow { color: var(--blue); font-size: 22px; }
+  .cloud { font-size: 17px; color: rgba(255,255,255,0.55); margin-top: 14px; }
+  .cloud s { color: rgba(255,120,120,0.85); }
+  .facts h2 { font-size: 40px; font-weight: 600; color: #fff; margin-bottom: 26px; }
+  .facts ul { list-style: none; display: grid; gap: 16px; }
+  .facts li { font-size: 21px; color: rgba(255,255,255,0.82); display: flex; gap: 14px; align-items: baseline; }
+  .facts li span { font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mac">
+      <div class="label">Ihr Mac</div>
+      <div class="flow">
+        <div class="node">🎙 Stimme</div><div class="arrow">→</div>
+        <div class="node"><span class="grad-text" style="font-weight:600">Parakeet Ultra</span><br><small style="color:var(--muted)">lokales Sprachmodell</small></div><div class="arrow">→</div>
+        <div class="node">✍️ Text</div>
+      </div>
+      <div class="cloud">☁️ Cloud, Server, Konto: <span style="color:rgba(255,140,140,0.9)">nicht beteiligt</span></div>
+    </div>
+    <div class="facts">
+      <h2>Ton und Text bleiben auf dem Mac</h2>
+      <ul>
+        <li><span class="grad-text">✓</span> Spracherkennung läuft vollständig auf dem Gerät</li>
+        <li><span class="grad-text">✓</span> Sprachmodell ist in der App enthalten, kein Download</li>
+        <li><span class="grad-text">✓</span> Keine Cloud-Anbieter, keine KI-Nachbearbeitung, kein Konto</li>
+        <li><span class="grad-text">✓</span> Funktioniert offline, auch im Flugzeug</li>
+        <li><span class="grad-text">✓</span> Offener Quellcode (GPLv3), basiert auf VoiceInk</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

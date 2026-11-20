@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  body { width: 1600px; height: 820px; }
+  .wrap { display: flex; align-items: center; gap: 90px; padding: 0 110px; height: 100%; }
+  .left { width: 560px; }
+  .left img { width: 140px; height: 140px; margin-bottom: 26px; filter: drop-shadow(0 18px 40px rgba(64, 120, 255, 0.35)); }
+  h1 { font-size: 86px; font-weight: 700; letter-spacing: -2px; color: #fff; }
+  .tag { font-size: 30px; font-weight: 400; margin-top: 10px; color: rgba(255,255,255,0.8); }
+  .pills { display: flex; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+  .pill { font-size: 17px; padding: 9px 16px; border-radius: 999px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); }
+  .right { position: relative; flex: 1; height: 560px; }
+  .doc {
+    position: absolute; inset: 0 0 120px 0; border-radius: 16px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+    padding: 34px 40px; font-size: 19px; line-height: 1.6; color: rgba(255,255,255,0.78);
+  }
+  .doc .hdr { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+  .doc .caret { display: inline-block; width: 2px; height: 22px; background: var(--blue); vertical-align: -4px; margin-left: 2px; }
+  .right .panel { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <img src="icon.png" alt="">
+      <h1>Undertone</h1>
+      <div class="tag">Diktieren auf dem Mac.<br><span class="grad-text" style="font-weight:600">Komplett lokal.</span></div>
+      <div class="pills">
+        <span class="pill">Live-Text beim Sprechen</span>
+        <span class="pill">Kein Internet nötig</span>
+        <span class="pill">Kein Konto, keine Cloud</span>
+        <span class="pill">Jede App</span>
+      </div>
+    </div>
+    <div class="right">
+      <div class="doc">
+        <div class="hdr">Neue E-Mail · An: Team Produktmanagement</div>
+        Hallo zusammen,<br><br>
+        das Release mit den Bugfixes ist auf Produktion ausgerollt. Bitte prüft bis Freitag eure Bereiche<span class="caret"></span>
+      </div>
+      <div class="panel">
+        <div class="live">Bitte prüft bis Freitag eure Bereiche und meldet Auffälligkeiten direkt im <span class="fresh">Ticket</span></div>
+        <div class="bar">
+          <div class="mode">🎙 Diktat</div>
+          <div class="wave" data-bars="56" data-max="34"></div>
+          <div class="actions"><span>Stopp</span><span>Abbrechen <span class="key">esc</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="wave.js"></script>
+</body>
+</html>

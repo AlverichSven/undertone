@@ -1,0 +1,24 @@
+{
+  "files": {
+    "Undertone-Sprachmodell-parakeet-tdt-0.6b-v3.zip": {
+      "sha256": "1d087d41d879f5677015197315d2d7a091788439a3f44114b83909e80608716e",
+      "size": 466653849
+    },
+    "Undertone-Sprachmodell-parakeet-ultra.zip": {
+      "sha256": "0af268fb185fd10a8e709a11c4e24df949c82eff80197fc9025233b3dc287343",
+      "size": 554689430
+    },
+    "parakeet-tdt-0.6b-v3.zip": {
+      "sha256": "298ae5125b598d66645f171cbab2d56e12610092ff8bcf033da8903ca3f41dc1",
+      "size": 465815777
+    },
+    "parakeet-ultra.zip": {
+      "sha256": "164ef4f612044f4f36415801220512de93d9e578c31fa9fd31185cd7a1416419",
+      "size": 553851358
+    },
+    "silero-vad.zip": {
+      "sha256": "d88e3dac4ab630d50b358401b6ae91f93b68b705ddb90b6862bcc21e017c921c",
+      "size": 838094
+    }
+  }
+}
