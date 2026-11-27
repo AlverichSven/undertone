@@ -32,6 +32,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var pendingOpenFileURL: URL?
 
     func application(_ application: NSApplication, open urls: [URL]) {
+        // Organisation build: "Open with Undertone" / drop on the Dock icon loads the company dictionary.
+        if OrgEdition.isEnabled, let dictionary = urls.first(where: OrgCompanyDictionary.isDictionaryFile) {
+            Task { @MainActor in
+                if OrgCompanyDictionary.shared.importFile(at: dictionary) {
+                    NotificationManager.shared.showNotification(
+                        title: "Firmenwörterbuch geladen", type: .success)
+                } else {
+                    NotificationManager.shared.showNotification(
+                        title: "Firmenwörterbuch konnte nicht gelesen werden", type: .error)
+                }
+            }
+            return
+        }
+
         // Organisation build: "Open with Undertone" / drop on the Dock icon installs a model package.
         if OrgEdition.isEnabled,
             let package = urls.first(where: {

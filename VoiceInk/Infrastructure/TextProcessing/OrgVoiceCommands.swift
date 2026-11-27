@@ -13,8 +13,12 @@ enum OrgVoiceCommands {
     static let commandsEnabledKey = "orgVoiceCommandsEnabled"
     static let smileysEnabledKey = "orgSmileysEnabled"
 
-    static func apply(_ text: String) -> String {
+    /// `language`: dictation language of the recording. The commands and smiley names are German,
+    /// so they are not applied when English is dictated („Fragezeichen“ is no English word anyway,
+    /// but „Smiley“ is).
+    static func apply(_ text: String, language: String? = nil) -> String {
         guard OrgEdition.isEnabled else { return text }
+        if let language, language.lowercased().hasPrefix("en") { return text }
         var result = text
         let defaults = UserDefaults.standard
         if defaults.object(forKey: smileysEnabledKey) as? Bool ?? true {

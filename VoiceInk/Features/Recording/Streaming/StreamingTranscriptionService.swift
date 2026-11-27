@@ -122,6 +122,8 @@ class StreamingTranscriptionService {
     private let chunkSource = AudioChunkSource()
     private var state: StreamingState = .idle
     private var committedSegments: [String] = []
+    /// Last text sent to the live preview (see the commit handler).
+    private var lastPreview = ""
     private let fluidAudioService: FluidAudioTranscriptionService?
     private var onPartialTranscript: ((String) -> Void)?
     private let metrics = StreamingMetrics()
@@ -157,6 +159,7 @@ class StreamingTranscriptionService {
         let start = Date()
         state = .connecting
         committedSegments = []
+        lastPreview = ""
         metrics.reset()
         firstPartialLogged = false
         firstCommitLogged = false
@@ -297,6 +300,7 @@ class StreamingTranscriptionService {
         }
 
         committedSegments = []
+        lastPreview = ""
         logger.notice("Streaming cancelled")
     }
 
@@ -390,8 +394,15 @@ class StreamingTranscriptionService {
                         }
                         // Refresh the live preview so it keeps showing the full running transcript
                         // after a commit (instead of resetting to empty until the next partial).
+                        // Keep the current preview when it already starts with the committed text:
+                        // otherwise the unconfirmed tail vanishes on every commit and reappears with
+                        // the next partial, which makes long dictations flicker.
                         if self.state == .streaming {
-                            self.onPartialTranscript?(self.committedSegments.joined(separator: " "))
+                            let committed = self.committedSegments.joined(separator: " ")
+                            if !(self.lastPreview.count > committed.count && self.lastPreview.hasPrefix(committed)) {
+                                self.lastPreview = committed
+                                self.onPartialTranscript?(committed)
+                            }
                         }
                         if self.state == .committing {
                             self.commitSignal?.yield()
@@ -414,6 +425,7 @@ class StreamingTranscriptionService {
                             } else {
                                 display = prefix + " " + text
                             }
+                            self.lastPreview = display
                             self.onPartialTranscript?(display)
                         }
                     }
@@ -502,5 +514,6 @@ class StreamingTranscriptionService {
         provider = nil
         state = .idle
         committedSegments = []
+        lastPreview = ""
     }
 }

@@ -58,6 +58,8 @@ Undertone.zip (App mit eingebautem Sprachmodell, ca. 600 MB).
      bleiben bei künftigen Updates erhalten. Einstellungen, Wörterbuch und
      Verlauf bleiben ohnehin.
 
+Häufige Fragen: https://github.com/AlverichSven/undertone/blob/main/docs/FAQ.md
+
 Datenschutz: Ton und Text verlassen den Mac nicht. Kein Konto, keine Cloud.
 Netzwerk nutzt Undertone nur für die tägliche Update-Prüfung beim internen Server.
 

@@ -26,8 +26,12 @@ struct TranscriptionOutputFilter {
             }
         }
 
+        // Undertone: German filler sounds, switch `orgFillerWordsEnabled`; unchanged in VoiceInk.
+        filteredText = OrgFillerWords.collapseStutterAroundFillers(filteredText, language: language)
         filteredText = FillerWordCleanup.remove(
-            from: filteredText, fillers: FillerWordManager.shared.fillerWords, language: language
+            from: filteredText,
+            fillers: OrgFillerWords.fillers(base: FillerWordManager.shared.fillerWords, language: language),
+            language: language
         )
 
         // Normalize horizontal whitespace without flattening paragraphs or lists.

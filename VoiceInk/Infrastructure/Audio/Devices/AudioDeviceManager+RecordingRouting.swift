@@ -64,7 +64,10 @@ extension AudioDeviceManager {
             guard deviceID != excludedDeviceID else { return false }
             return seen.insert(deviceID).inserted
         }
-        let resolvedDeviceID = candidates.first(where: isDeviceUsableForRecording)
+        var resolvedDeviceID = candidates.first(where: isDeviceUsableForRecording)
+        // Undertone: never record from a Bluetooth headset (keeps it in its music profile during
+        // meetings); use the built-in microphone instead, if there is one.
+        resolvedDeviceID = orgBluetoothSafeDevice(for: resolvedDeviceID, excluding: excludedDeviceID)
 
         return RecordingDeviceResolution(
             deviceID: resolvedDeviceID,

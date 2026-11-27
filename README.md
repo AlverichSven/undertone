@@ -47,6 +47,23 @@ Insgesamt kennt Undertone über 4.000 Smileys; die vollständigen Namen stehen i
 
 Beides lässt sich in den Einstellungen unter **Sprachbefehle** einzeln abschalten.
 
+## Weitere Funktionen (ab 1.1)
+
+- **Füllwörter entfernen:** „äh“, „ähm“, „hm“ und direkt doppelte Wörter („das das“) fallen beim Einfügen weg.
+- **Firmenwörterbuch:** Eine gemeinsame Datei `Undertone-Woerterbuch.json` (Fachbegriffe, Projektschlüssel,
+  Ersetzungen) wird aus OneDrive/SharePoint oder Downloads geladen. Buchstabierte Projektschlüssel wie
+  „AB CD EF 12“ werden zu `ABCDEF-12`.
+- **Bluetooth-Schutz:** Mit Headset im Meeting nimmt Undertone das eingebaute Mikrofon, damit das Headset nicht
+  in den Telefonmodus wechselt.
+- **Letztes Diktat erneut einfügen:** ⌃⌥V oder Menüleiste.
+- **Englisch diktieren:** Sprache Deutsch, Englisch oder Automatisch, auch schnell über die Menüleiste.
+
+Alles lässt sich in den Einstellungen einzeln abschalten.
+
+## Häufige Fragen
+
+Antworten zu Installation, Diktiertaste, Live-Text, Zwischenablage, Meetings und Updates: [docs/FAQ.md](docs/FAQ.md).
+
 ## Datenschutz
 
 ![Ton und Text bleiben auf dem Mac](docs/undertone/privacy.png)

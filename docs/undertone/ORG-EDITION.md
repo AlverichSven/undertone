@@ -328,6 +328,115 @@ genügen dessen Repo plus (bei Parakeet) `silero-vad-coreml`.
   `Contents/Resources/smileys.json` kopiert.
 - Schalter in den Einstellungen (Karte „Sprachbefehle“), Defaults-Schlüssel `orgVoiceCommandsEnabled`,
   `orgSmileysEnabled` (Standard an).
+- Nicht bei Sprache Englisch (siehe „Sprache“).
+
+## Textverarbeitung, Firmenwörterbuch, Mikrofon, Sprache (ab 1.1.0)
+
+### Reihenfolge der Textverarbeitung (eingefügter Endtext, `TranscriptionPipeline`)
+
+1. `TranscriptionOutputFilter` (VoiceInk): Klammer-Halluzinationen, **Füllgeräusche** (VoiceInks Liste plus
+   deutsche Laute aus `OrgFillerWords`; VoiceInks Aufräumen von Kommas, Leerzeichen und Großschreibung).
+2. Trigger-Wörter (VoiceInk, im Org-Bau ohne Wirkung).
+3. **Doppelte Wörter** (`OrgFillerWords.removeRepeatedWords`): vor allem Folgenden, damit Wörterbuch und Befehle
+   den bereinigten Text sehen.
+4. **Projektschlüssel** (`OrgCompanyTerms.applyProjectKeys`): vor der Vokabular-Korrektur und allen Ersetzungen,
+   damit weder die phonetische Korrektur noch eine Ersetzung (z. B. „AB“ → „A&B“) einen buchstabierten Schlüssel
+   zerlegt, bevor er erkannt ist.
+5. Vokabular-Korrektur (VoiceInk `PhoneticVocabularyMatcher`): eigene Wörter plus Wörter des Firmenwörterbuchs.
+6. Absatzformatierung (VoiceInk).
+7. **Ersetzungen des Firmenwörterbuchs**, danach die eigenen Ersetzungen des Nutzers (VoiceInk): Die eigenen Regeln
+   haben das letzte Wort.
+8. Sprachbefehle und Smileys (`OrgVoiceCommands`), nicht bei Englisch.
+
+### Füllwörter (`OrgFillerWords.swift`)
+
+- Schalter „Füllwörter entfernen“, Defaults `orgFillerWordsEnabled` (Standard an). Aus: es wird gar nichts entfernt,
+  auch nicht VoiceInks englische Liste.
+- Deutsch/Automatisch: „äh“, „ähm“, „öh“, „öhm“, „hm“, „hmm“, „mhm“ plus VoiceInks Liste **ohne „um“** (VoiceInk
+  hätte sonst „um 10 Uhr“ zu „10 Uhr“ gemacht). Englisch: VoiceInks Liste plus „uh“, „um“, „er“, „erm“.
+- Doppelte Wörter: direkt aufeinander, nur durch Leerzeichen getrennt, Groß/Klein egal, nur Buchstabenwörter (Zahlen
+  nie). Bleiben stehen: bewusste Dopplungen („so so“, „ja ja“, „nein nein“, „na na“, „sehr sehr“, „ganz ganz“,
+  „viel viel“, „immer immer“, „bitte bitte“, „gut gut“ u. a.), „Sie sie“ (Anrede plus Pronomen) und Artikel nach
+  Komma („…, die die Zeitung liest“). Englisch: u. a. „that that“, „had had“, „very very“.
+- Bekannte Grenze: Bei „Ich habe, äh, das …“ bleibt das erste Komma stehen (VoiceInks Logik behält ein Komma vor
+  dem Füllwort, weil es oft echt ist: „Ich weiß nicht, öhm, ob …“).
+
+### Firmenwörterbuch (`OrgCompanyDictionary.swift`, `OrgCompanyTerms.swift`)
+
+Dateiformat (alle Felder optional, Beispiel mit erfundenen Werten):
+
+```json
+{
+  "beschreibung": "Firmenwörterbuch für Undertone",
+  "version": "2026-01-15",
+  "woerter": ["Beispielprodukt", "Musterkunde"],
+  "jiraSchluessel": ["ABCDEF", "XYZW"],
+  "ersetzungen": [{ "von": "A und B", "nach": "A&B" }]
+}
+```
+
+- Quellen: automatisch beim Start und alle 24 Stunden die **neueste** Datei `Undertone-Woerterbuch.json` (auch
+  „… (1).json“) unter `~/Library/CloudStorage/<Anbieter>/` bis Tiefe 4 und unter `~/Downloads` bis Tiefe 2.
+  OneDrive-Platzhalter (`SF_DATALESS` bzw. `ubiquitousItemDownloadingStatus == notDownloaded`) werden übersprungen
+  und in den Einstellungen mit Hinweis genannt. Geladen wird nur, wenn die Datei neuer ist als die geladene.
+  Von Hand: „Firmenwörterbuch importieren …“, „Jetzt suchen“, Finder „Öffnen mit → Undertone“ oder Ablegen auf das
+  Dock-Symbol (Info.plist-Dokumenttyp `public.json`, Rang „Alternate“; ein Doppelklick öffnet JSON weiter im
+  Standardprogramm, weil macOS Zuordnungen nicht nach Dateinamen kennt).
+- Ablage: Kopie in `~/Library/Application Support/com.undertone.app/Firmenwoerterbuch.json`, getrennt von den eigenen
+  Einträgen (SwiftData). Ein neues Firmenwörterbuch ersetzt das alte vollständig. „Entfernen“ löscht die Kopie;
+  die automatische Suche lädt danach erst wieder eine neuere Datei.
+- Defaults: `orgCompanyDictionaryEnabled` (Standard an), `orgCompanyDictionaryAutoSearch` (Standard an; aus = nur
+  von Hand), intern `orgCompanyDictionarySource`, `orgCompanyDictionarySourceDate`, `orgCompanyDictionaryRemovedDate`.
+- `woerter`: gehen in VoiceInks Vokabular (`CustomVocabularyService.loadSavedVocabulary`, hinter den eigenen Wörtern,
+  die bei Kollisionen gewinnen). Bei Parakeet wirkt das Vokabular nur über die phonetische Nachkorrektur
+  (`RecordingVocabulary.correctTranscription` → `PhoneticVocabularyMatcher`); das Modell selbst bekommt keine Hinweise.
+  Begriffe mit Sonderzeichen oder Ziffern (z. B. „A&B“) überspringt der Matcher.
+- `jiraSchluessel`: Folge von Wortstücken, nur durch Leerzeichen, Punkte oder Bindestriche getrennt, die ohne
+  Trenner case-insensitiv genau einem Schlüssel entspricht, wird zum Schlüssel in Großbuchstaben („AB CD EF“,
+  „a.b.cd-ef“, „AbCdEf“ → `ABCDEF`). Längster Treffer zuerst, nur Schlüssel ab 4 Zeichen, nur ganze Wörter. Folgt
+  eine Zahl („… 12“, „…-12“, „… Bindestrich 12“, „1.234“), entsteht das Ticket `ABCDEF-12` bzw. `ABCDEF-1234`.
+  Schutz für normale Sprache: Enthält die Folge ein normales Wort (ab 4 Buchstaben, mit Kleinbuchstaben, etwa
+  „IT Security“ oder „E-Board“), wird sie nur mit folgender Ticketnummer umgewandelt. Projektschlüssel gehen nicht
+  ins Vokabular (sie würden normale Wörter anziehen).
+- `ersetzungen`: ganze Wörter bzw. Wortfolgen, case-insensitiv, längste zuerst (wie VoiceInks Ersetzungen;
+  Leerzeichen in `von` passen auf beliebig viele Leerzeichen). Schlüssel bleiben unberührt, weil „AB“ als ganzes
+  Wort nicht in `ABCDEF` passt.
+
+### Bluetooth-Schutz (`AudioDeviceManager+OrgBluetooth.swift`)
+
+- Defaults `orgBluetoothProtectionEnabled` (Standard an), Schalter unter Einstellungen → Mikrofon.
+- In `resolveCurrentRecordingDevice` (zentrale Gerätewahl für Aufnahme, Vorbereitung und Geräteanzeige): Ist das
+  gewählte Gerät laut `kAudioDevicePropertyTransportType` Bluetooth oder Bluetooth LE, nimmt Undertone das
+  eingebaute Mikrofon (`isInternalMicrophone`, sonst ein anderes Gerät mit Transport „Built-in“, z. B. Klinke),
+  sofern es nutzbar ist (Deckel offen). Gilt in allen Eingabemodi, auch bei ausdrücklich gewähltem Bluetooth-Gerät.
+  Kein eingebautes Mikrofon (Mac mini) oder Deckel zu: Bluetooth-Gerät wie bisher.
+- Das Standard-Eingabegerät des Systems wird nie geändert; Undertone setzt das Gerät nur an der eigenen Audio-Unit
+  (`kAudioOutputUnitProperty_CurrentDevice`).
+
+### Letztes Diktat erneut einfügen
+
+- VoiceInk hat die Funktion schon („Paste Last Transcription“, `ShortcutAction.pasteLastTranscription`, ohne
+  Standard-Tastenkürzel). Der Org-Bau setzt beim Start **⌃⌥V**, sofern der Nutzer das Kürzel nicht selbst gesetzt
+  oder gelöscht hat und es nicht belegt ist (`ShortcutStore.seedShortcut`, Defaults `Shortcut_pasteLastTranscription`).
+  Änderbar unter Einstellungen → Tastenkürzel; Menüleiste „Letztes Diktat erneut einfügen“.
+- Eingefügt wird der fertige Text (nach Füllwörtern, Wörterbuch und Befehlen) des letzten **abgeschlossenen**
+  Diktats (abgebrochene und fehlgeschlagene werden übersprungen), über `CursorPaster` mit Wiederherstellung der
+  Zwischenablage.
+
+### Sprache
+
+- Auswahl Deutsch (`de`, Standard), Englisch (`en`), Automatisch (`auto`, nur wenn das Modell es anbietet; Cohere
+  nicht). Gespeichert im Modus „Diktat“ (`ModeConfig.selectedLanguage`), umschaltbar in den Einstellungen und in der
+  Menüleiste („Sprache: …“).
+- Wirkung bei Parakeet V3/Ultra: FluidAudio nutzt die Sprache nur als **Schrift-Filter** (`TokenLanguageFilter`:
+  Latein/Kyrillisch/Griechisch). Deutsch und Englisch dekodieren identisch, das Modell erkennt die Sprache selbst.
+  „Automatisch“ schaltet den Filter ab (theoretisch können dann kyrillische Zeichen auftauchen). Bei Cohere wird
+  die Sprache dem Modell wirklich vorgegeben.
+- In Undertone steuert die Sprache vor allem die Nachbearbeitung: Englisch → keine deutschen Sprachbefehle und
+  Smileys, englische Füllwörter („uh“, „um“). Deutsch und Automatisch → deutsche Regeln.
+- Ein eigenes Tastenkürzel „Auf Englisch diktieren“ gibt es bewusst nicht: Bei Parakeet würde es die Erkennung nicht
+  ändern, nur die Nachbearbeitung, und VoiceInks zweites Aufnahmekürzel ist an Modi gebunden, die der Org-Bau auf
+  einen festen Modus reduziert.
 
 ## Netzwerk
 

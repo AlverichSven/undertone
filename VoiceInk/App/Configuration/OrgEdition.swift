@@ -215,6 +215,13 @@ enum OrgEdition {
                 for: .primaryRecording
             )
 
+            // „Letztes Diktat erneut einfügen“ (VoiceInk's „Paste Last Transcription“) on ⌃⌥V,
+            // unless the user set or cleared it. Rejected silently if ⌃⌥V is already taken.
+            ShortcutStore.seedShortcut(
+                .key(keyCode: UInt16(kVK_ANSI_V), modifierFlags: [.control, .option]),
+                for: .pasteLastTranscription
+            )
+
             // In archive mode FluidAudio must never fall back to Hugging Face: point its registry
             // at the archive (which has no HF API), so a stray download fails instead.
             ModelRegistry.baseURL = modelArchiveBaseURL ?? modelServerBaseURL
@@ -327,6 +334,40 @@ enum OrgEdition {
             manager.replaceConfigurations([config])
             manager.setActiveConfiguration(config)
         #endif
+    }
+
+    // MARK: - Dictation language
+
+    /// Languages offered in the organisation build. „auto“ only if the model supports it
+    /// (Parakeet yes, Cohere no).
+    @MainActor
+    static func dictationLanguageOptions() -> [(code: String, name: String)] {
+        var options: [(code: String, name: String)] = [("de", "Deutsch"), ("en", "Englisch")]
+        if let model = TranscriptionModelRegistry.models.first(where: { $0.name == configuredTranscriptionModelName }),
+            TranscriptionLanguageSupport.languages(for: model)["auto"] != nil
+        {
+            options.append(("auto", "Automatisch"))
+        }
+        return options
+    }
+
+    @MainActor
+    static var dictationLanguage: String {
+        ModeManager.shared.getConfiguration(with: dictationModeID)?.selectedLanguage ?? defaultLanguage
+    }
+
+    @MainActor
+    static func setDictationLanguage(_ code: String) {
+        updateDictationMode { $0.selectedLanguage = code }
+    }
+
+    static func dictationLanguageName(_ code: String) -> String {
+        switch code {
+        case "de": return "Deutsch"
+        case "en": return "Englisch"
+        case "auto": return "Automatisch"
+        default: return Locale(identifier: "de").localizedString(forLanguageCode: code) ?? code
+        }
     }
 
     /// Updates the dictation mode (model, language, live text) from the organisation settings.

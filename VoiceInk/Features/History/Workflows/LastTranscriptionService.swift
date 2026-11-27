@@ -57,8 +57,24 @@ class LastTranscriptionService: ObservableObject {
         }
     }
 
+    /// Undertone: the newest finished dictation with text (skips canceled and failed ones).
+    static func getLastCompletedTranscription(from modelContext: ModelContext) -> Transcription? {
+        var descriptor = FetchDescriptor<Transcription>(
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = 20
+        let recent = (try? modelContext.fetch(descriptor)) ?? []
+        return recent.first {
+            $0.transcriptionStatus == TranscriptionStatus.completed.rawValue
+                && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
     static func pasteLastTranscription(from modelContext: ModelContext) {
-        guard let lastTranscription = getLastTranscription(from: modelContext) else {
+        let found = OrgEdition.isEnabled
+            ? getLastCompletedTranscription(from: modelContext)
+            : getLastTranscription(from: modelContext)
+        guard let lastTranscription = found else {
             ShortcutDiagnostics.notice("utility action=pasteLastTranscription result=ignored reason=no-history")
             Task { @MainActor in
                 NotificationManager.shared.showNotification(

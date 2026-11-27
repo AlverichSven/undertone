@@ -166,6 +166,7 @@ struct VoiceInkApp: App {
             transcriptionModelManager.refreshAllAvailableModels()
             OrgEdition.ensureDictationMode()
             OrgEdition.ensureLaunchAtLogin()
+            OrgCompanyDictionary.shared.startAutomaticUpdates()
             OrgModelArchiveInstaller.shared.fluidAudioModelManager = fluidAudioModelManager
             if !OrgModelSetup.isReady(fluidAudioModelManager: fluidAudioModelManager) {
                 UserDefaults.standard.set(false, forKey: OnboardingSettings.completedV2Key)

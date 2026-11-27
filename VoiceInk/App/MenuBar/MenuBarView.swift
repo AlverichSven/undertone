@@ -110,7 +110,36 @@ struct MenuBarView: View {
                 }
             }
 
+            if OrgEdition.isEnabled {
+                // Undertone: quick language switch for the dictation mode.
+                let currentLanguage = modeManager.getConfiguration(with: OrgEdition.dictationModeID)?.selectedLanguage
+                    ?? OrgEdition.defaultLanguage
+                Menu {
+                    ForEach(OrgEdition.dictationLanguageOptions(), id: \.code) { option in
+                        Button {
+                            OrgEdition.setDictationLanguage(option.code)
+                        } label: {
+                            Text(option.code == currentLanguage ? "\(option.name)  ✓" : option.name)
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "globe")
+                            .font(.system(size: 11, weight: .medium))
+                        Text("Sprache: \(OrgEdition.dictationLanguageName(currentLanguage))")
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 10))
+                    }
+                }
+            }
+
             Divider()
+
+            if OrgEdition.isEnabled {
+                Button("Letztes Diktat erneut einfügen") {
+                    LastTranscriptionService.pasteLastTranscription(from: engine.modelContext)
+                }
+            }
 
             Button("Retry Last Transcription") {
                 LastTranscriptionService.retryLastTranscription(

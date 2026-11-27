@@ -137,6 +137,12 @@ class TranscriptionPipeline {
                 text = processedText
             }
 
+            // Undertone: repeated words („das das“) and spelled project keys („AB CD EF 12“ →
+            // key with ticket number). Keys before the vocabulary correction and all replacements,
+            // so neither can break a spelled key apart.
+            text = OrgFillerWords.removeRepeatedWords(text, language: transcriptionConfiguration.language)
+            text = OrgCompanyDictionary.shared.applyProjectKeys(text)
+
             text = try await vocabulary.correctTranscription(text)
             if shouldCancel() {
                 await finishCanceledTranscription()
@@ -155,9 +161,11 @@ class TranscriptionPipeline {
                 text = ParagraphFormatter.format(text)
             }
 
+            // Undertone: company replacements first, so the user's own replacements have the last word.
+            text = OrgCompanyDictionary.shared.applyReplacements(text)
             text = WordReplacementService.shared.applyReplacements(to: text, using: modelContext)
-            // Undertone: spoken commands („neuer Absatz“, „Fragezeichen“ …) and „Smiley …“.
-            text = OrgVoiceCommands.apply(text)
+            // Undertone: spoken commands („neuer Absatz“, „Fragezeichen“ …) and „Smiley …“ (not for English).
+            text = OrgVoiceCommands.apply(text, language: transcriptionConfiguration.language)
             let cleanedText = text
 
             let actualDuration = await AudioFileMetadata.duration(for: audioURL)

@@ -13,6 +13,10 @@ struct OrgSettingsView: View {
     @ObservedObject private var mediaController = MediaController.shared
     @AppStorage(OrgVoiceCommands.commandsEnabledKey) private var voiceCommandsEnabled = true
     @AppStorage(OrgVoiceCommands.smileysEnabledKey) private var smileysEnabled = true
+    @AppStorage(OrgFillerWords.enabledKey) private var fillerWordsEnabled = true
+    @AppStorage(OrgCompanyDictionary.enabledKey) private var companyDictionaryEnabled = true
+    @AppStorage(AudioDeviceManager.orgBluetoothProtectionKey) private var bluetoothProtectionEnabled = true
+    @ObservedObject private var companyDictionary = OrgCompanyDictionary.shared
     @ObservedObject private var modeManager = ModeManager.shared
     @AppStorage(RecorderDisplaySettingsKeys.showLiveTranscript) private var showLiveTranscript = true
     @AppStorage("restoreClipboardAfterPaste") private var restoreClipboardAfterPaste = true
@@ -27,18 +31,15 @@ struct OrgSettingsView: View {
         TranscriptionModelRegistry.models.first { $0.name == OrgEdition.configuredTranscriptionModelName }
     }
 
+    /// Deutsch, Englisch, Automatisch (if the model can); a different language chosen in an
+    /// earlier version stays visible until the user picks one of these.
     private var languageOptions: [(code: String, name: String)] {
-        guard let model = configuredModel else { return [] }
-        let languages = TranscriptionLanguageSupport.languages(for: model)
-        return languages
-            .map { (code: $0.key, name: $0.value) }
-            .sorted { lhs, rhs in
-                if lhs.code == OrgEdition.defaultLanguage { return true }
-                if rhs.code == OrgEdition.defaultLanguage { return false }
-                if lhs.code == "auto" { return true }
-                if rhs.code == "auto" { return false }
-                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-            }
+        var options = OrgEdition.dictationLanguageOptions()
+        let current = languageBinding.wrappedValue
+        if !options.contains(where: { $0.code == current }) {
+            options.append((current, OrgEdition.dictationLanguageName(current)))
+        }
+        return options
     }
 
     private var languageBinding: Binding<String> {
@@ -82,6 +83,13 @@ struct OrgSettingsView: View {
                     }
                 }
 
+                LabeledContent("Letztes Diktat erneut einfügen") {
+                    ShortcutRecorder(action: .pasteLastTranscription) {
+                        recordingShortcutManager.updateShortcutStatus()
+                    }
+                    .controlSize(.small)
+                }
+
                 LabeledContent("Aufnahme abbrechen") {
                     HStack(spacing: 8) {
                         ShortcutRecorder(
@@ -121,6 +129,73 @@ struct OrgSettingsView: View {
                 Toggle("Live-Text während der Aufnahme anzeigen", isOn: $showLiveTranscript)
 
                 Toggle("Zwischenablage nach dem Einfügen wiederherstellen", isOn: $restoreClipboardAfterPaste)
+
+                Text("Englisch: Sprachbefehle und Smileys sind dann aus. Automatisch: Das Modell erkennt die Sprache selbst. Die Sprache lässt sich auch im Menü der Menüleiste umschalten.")
+                    .settingsDescription()
+            }
+
+            OrgSettingsCard(title: "Text") {
+                Toggle("Füllwörter entfernen", isOn: $fillerWordsEnabled)
+                Text("„äh“, „ähm“, „öh“, „hm“, „mhm“ fallen weg, ebenso direkt doppelte Wörter („das das“ wird zu „das“). Bewusste Dopplungen wie „so so“ oder „sehr sehr“ bleiben. Bei Englisch auch „uh“ und „um“.")
+                    .settingsDescription()
+            }
+
+            OrgSettingsCard(
+                title: "Firmenwörterbuch",
+                footer: "Undertone sucht beim Start und einmal täglich nach der Datei \(OrgCompanyDictionary.fileName) in OneDrive/SharePoint und in Downloads und lädt die neueste. Ihre eigenen Einträge im Wörterbuch bleiben unberührt."
+            ) {
+                Toggle("Firmenwörterbuch verwenden", isOn: $companyDictionaryEnabled)
+
+                if let content = companyDictionary.content {
+                    LabeledContent("Stand") {
+                        Text(content.version ?? "ohne Angabe").foregroundColor(.secondary)
+                    }
+                    LabeledContent("Inhalt") {
+                        Text("\(content.cleanedWords.count) Wörter, \(content.jiraSchluessel.count) Projektschlüssel, \(content.ersetzungen.count) Ersetzungen")
+                            .foregroundColor(.secondary)
+                    }
+                    if let path = companyDictionary.sourcePath {
+                        LabeledContent("Quelle") {
+                            Text((path as NSString).abbreviatingWithTildeInPath)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .help(path)
+                        }
+                    }
+                } else {
+                    Text("Kein Firmenwörterbuch geladen.")
+                        .settingsDescription()
+                }
+
+                HStack(spacing: 8) {
+                    Button("Firmenwörterbuch importieren …") { companyDictionary.showImportPanel() }
+                    Button(companyDictionary.isSearching ? "Suche läuft …" : "Jetzt suchen") {
+                        companyDictionary.search()
+                    }
+                    .disabled(companyDictionary.isSearching)
+                    Spacer()
+                    if companyDictionary.content != nil {
+                        Button("Entfernen") { companyDictionary.remove() }
+                    }
+                }
+                .controlSize(.small)
+
+                if let message = companyDictionary.lastMessage {
+                    Text(message).settingsDescription()
+                }
+
+                if !companyDictionary.placeholders.isEmpty {
+                    Text("Diese Datei liegt nur in OneDrive und ist noch nicht auf diesem Mac: \(companyDictionary.placeholders.map(\.displayPath).joined(separator: ", ")). Bitte im Finder per Rechtsklick „Immer auf diesem Gerät behalten“ wählen, danach „Jetzt suchen“.")
+                        .settingsDescription()
+                        .textSelection(.enabled)
+                }
+            }
+
+            OrgSettingsCard(title: "Mikrofon") {
+                Toggle("Bluetooth-Headset nicht zum Diktieren verwenden", isOn: $bluetoothProtectionEnabled)
+                Text("Wäre ein Bluetooth-Gerät (z. B. AirPods oder Headset) das Mikrofon, nimmt Undertone stattdessen das eingebaute Mikrofon des Mac. So wechselt das Headset in Teams-Besprechungen nicht in den schlechteren Telefonmodus. Das gilt auch, wenn Sie auf der Seite Mikrofon ein Bluetooth-Gerät gewählt haben. Ohne eingebautes Mikrofon (z. B. Mac mini) wird das Bluetooth-Gerät normal verwendet. Das Standardmikrofon des Systems bleibt unverändert.")
+                    .settingsDescription()
             }
 
             OrgSettingsCard(title: "Sprachbefehle") {
@@ -170,6 +245,8 @@ struct OrgSettingsView: View {
             }
 
             OrgSettingsCard(title: "Über Undertone") {
+                Link("Häufige Fragen (FAQ)", destination: URL(string: "https://github.com/AlverichSven/undertone/blob/main/docs/FAQ.md")!)
+
                 Text(OrgEdition.attributionText)
                     .settingsDescription()
                     .textSelection(.enabled)

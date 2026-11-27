@@ -171,6 +171,17 @@ def patch_info_plist(app, model, server, archive_url="", manifest=None):
     else:
         print(f"warning: {smileys_src} missing, spoken smileys disabled", file=sys.stderr)
 
+    # „Öffnen mit > Undertone“ for the company dictionary (Undertone-Woerterbuch.json). Rank
+    # "Alternate": Undertone never becomes the default app for JSON files.
+    doc_types = [t for t in info.get("CFBundleDocumentTypes", []) if t.get("CFBundleTypeName") != "Undertone-Firmenwörterbuch"]
+    doc_types.append({
+        "CFBundleTypeName": "Undertone-Firmenwörterbuch",
+        "CFBundleTypeRole": "Viewer",
+        "LSHandlerRank": "Alternate",
+        "LSItemContentTypes": ["public.json"],
+    })
+    info["CFBundleDocumentTypes"] = doc_types
+
     save_plist(path, info)
 
 
